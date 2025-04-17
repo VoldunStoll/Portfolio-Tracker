@@ -1,15 +1,18 @@
-// Setup
+// Import Supabase
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+// === Setup ===
 const SUPABASE_URL = 'https://rtplxllphixpqhkvsuop.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cGx4bGxwaGl4cHFoa3ZzdW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjQwMTUsImV4cCI6MjA2MDQwMDAxNX0.sLiS0__pFaxtKW1rE2H_6f9stti4CEVtdYQgUpJCN84';
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// === DOM References ===
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('login-email');
 const passwordInput = document.getElementById('login-password');
 const authSection = document.getElementById('auth-section');
 const portfolioSection = document.getElementById('portfolio-section');
-
 const form = document.getElementById('portfolio-form');
 const symbolInput = document.getElementById('coin-symbol');
 const amountInput = document.getElementById('coin-amount');
@@ -27,7 +30,7 @@ const nicknameMap = {
   'shiba-inu': 'SHIB', pepe: 'PEPE'
 };
 
-// ============ Auth ============
+// === Auth ===
 
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -43,7 +46,12 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 async function signInWithGitHub() {
-  const { error } = await supabase.auth.signInWithOAuth({ provider: 'github' });
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: window.location.origin  // This must match your Supabase GitHub callback URL
+    }
+  });
   if (error) alert('GitHub login failed: ' + error.message);
 }
 
@@ -62,7 +70,7 @@ async function logout() {
   portfolioSection.classList.add('hidden');
 }
 
-// ============ Portfolio ============
+// === Portfolio ===
 
 async function onLogin() {
   authSection.classList.add('hidden');
@@ -170,7 +178,10 @@ async function removeCoin(symbol) {
 
 async function savePortfolio() {
   if (!currentUser) return;
+
+  // Clean slate (optional) — replace this with `upsert` below for smoother experience
   await supabase.from('portfolios').delete().eq('user_id', currentUser.id);
+
   for (let coin of portfolio) {
     await supabase.from('portfolios').insert({
       user_id: currentUser.id,
@@ -179,6 +190,20 @@ async function savePortfolio() {
     });
   }
 }
+
+// ALT: Use this instead of delete + insert
+/*
+async function savePortfolio() {
+  if (!currentUser) return;
+  for (let coin of portfolio) {
+    await supabase.from('portfolios').upsert({
+      user_id: currentUser.id,
+      symbol: coin.symbol,
+      amount: coin.amount
+    }, { onConflict: ['user_id', 'symbol'] });
+  }
+}
+*/
 
 async function loadPortfolio() {
   const { data, error } = await supabase
@@ -194,6 +219,8 @@ async function loadPortfolio() {
       value: 0
     }));
     await refreshPrices();
+  } else {
+    console.error('Load portfolio error:', error);
   }
 }
 
@@ -214,4 +241,4 @@ async function refreshPrices() {
   await savePortfolio();
 }
 
-setInterval(refreshPrices, 60000);
+setInterval(refreshPrices, 60000); // Auto-refresh prices every 60s
