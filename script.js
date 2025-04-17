@@ -1,13 +1,9 @@
-// Import Supabase
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-// === Setup ===
+// Setup Supabase
 const SUPABASE_URL = 'https://rtplxllphixpqhkvsuop.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cGx4bGxwaGl4cHFoa3ZzdW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjQwMTUsImV4cCI6MjA2MDQwMDAxNX0.sLiS0__pFaxtKW1rE2H_6f9stti4CEVtdYQgUpJCN84';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cGx4bGxwaGl4cHFoa3ZzdW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjQwMTUsImV4cCI6MjA2MDQwMDAxNX0.sLiS0__pFaxtKW1rE2H_6f9stti4CEVtdYQgUpJCN84'; 
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// === DOM References ===
+// Elements
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('login-email');
 const passwordInput = document.getElementById('login-password');
@@ -19,6 +15,7 @@ const amountInput = document.getElementById('coin-amount');
 const list = document.getElementById('portfolio-list');
 const totalValueDisplay = document.getElementById('total-value');
 
+// State
 let portfolio = [];
 let currentUser = null;
 let coinListCache = [];
@@ -30,8 +27,7 @@ const nicknameMap = {
   'shiba-inu': 'SHIB', pepe: 'PEPE'
 };
 
-// === Auth ===
-
+// Auth
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = emailInput.value.trim();
@@ -46,18 +42,22 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 async function signInWithGitHub() {
-  const { error } = await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: window.location.origin  // This must match your Supabase GitHub callback URL
+      redirectTo: window.location.origin + '/Portfolio-Tracker/'
     }
   });
-  if (error) alert('GitHub login failed: ' + error.message);
+  if (error) {
+    console.error(error);
+    alert('GitHub login failed: ' + error.message);
+  }
 }
 
-supabase.auth.getUser().then(({ data: { user } }) => {
-  if (user) {
-    currentUser = user;
+// Check session on load
+supabase.auth.getSession().then(({ data }) => {
+  if (data.session && data.session.user) {
+    currentUser = data.session.user;
     onLogin();
   }
 });
@@ -70,8 +70,7 @@ async function logout() {
   portfolioSection.classList.add('hidden');
 }
 
-// === Portfolio ===
-
+// Portfolio Functions
 async function onLogin() {
   authSection.classList.add('hidden');
   portfolioSection.classList.remove('hidden');
@@ -178,10 +177,7 @@ async function removeCoin(symbol) {
 
 async function savePortfolio() {
   if (!currentUser) return;
-
-  // Clean slate (optional) — replace this with `upsert` below for smoother experience
   await supabase.from('portfolios').delete().eq('user_id', currentUser.id);
-
   for (let coin of portfolio) {
     await supabase.from('portfolios').insert({
       user_id: currentUser.id,
@@ -190,20 +186,6 @@ async function savePortfolio() {
     });
   }
 }
-
-// ALT: Use this instead of delete + insert
-/*
-async function savePortfolio() {
-  if (!currentUser) return;
-  for (let coin of portfolio) {
-    await supabase.from('portfolios').upsert({
-      user_id: currentUser.id,
-      symbol: coin.symbol,
-      amount: coin.amount
-    }, { onConflict: ['user_id', 'symbol'] });
-  }
-}
-*/
 
 async function loadPortfolio() {
   const { data, error } = await supabase
@@ -219,8 +201,6 @@ async function loadPortfolio() {
       value: 0
     }));
     await refreshPrices();
-  } else {
-    console.error('Load portfolio error:', error);
   }
 }
 
@@ -241,4 +221,4 @@ async function refreshPrices() {
   await savePortfolio();
 }
 
-setInterval(refreshPrices, 60000); // Auto-refresh prices every 60s
+setInterval(refreshPrices, 60000);
