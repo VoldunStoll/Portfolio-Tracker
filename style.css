@@ -1,110 +1,89 @@
-/* style.css */
-
 body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #111827;
-    color: white;
-    padding: 2rem;
+    background: #0f172a;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
   }
   
   .container {
-    max-width: 600px;
-    margin: 0 auto;
-    background-color: #1f2937;
+    background: #1e293b;
     padding: 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 400px;
   }
   
   h1 {
     text-align: center;
-    font-size: 2rem;
+    color: #60a5fa;
     margin-bottom: 1.5rem;
-    color: #93c5fd;
   }
   
-  input[type="email"],
-  input[type="password"],
-  input[type="text"],
-  input[type="number"] {
-    width: 100%;
-    padding: 0.5rem;
-    margin-top: 0.25rem;
-    margin-bottom: 1rem;
-    background-color: #374151;
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  input {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #334155;
     color: white;
-    border: 1px solid #4b5563;
-    border-radius: 0.5rem;
   }
   
   button {
-    width: 100%;
-    padding: 0.75rem;
+    padding: 10px;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 8px;
+    background-color: white;
+    color: #1e293b;
     font-weight: bold;
     cursor: pointer;
-    margin-top: 0.5rem;
+    transition: background 0.3s;
   }
   
   button:hover {
-    opacity: 0.9;
+    background-color: #cbd5e1;
   }
   
-  button.login-btn {
-    background-color: #2563eb;
-    color: white;
+  p {
+    text-align: center;
+    margin: 10px 0;
   }
   
-  button.github-btn {
-    background-color: #10b981;
-    color: white;
+  #portfolio-form {
+    margin-bottom: 1rem;
   }
   
-  button.logout-btn {
-    background-color: #ef4444;
-    color: white;
-    margin-top: 2rem;
+  .coin-entry {
+    background: #334155;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
   }
   
-  .portfolio-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #374151;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    margin-top: 0.75rem;
-  }
-  
-  .portfolio-item button {
-    margin-left: 0.5rem;
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
-    background-color: #6b7280;
-    color: white;
-    border-radius: 0.3rem;
-  }
-  
-  .portfolio-item button:hover {
-    background-color: #4b5563;
-  }
-  
-  #total-value {
-    font-size: 1.25rem;
-    font-weight: bold;
-    text-align: right;
-    margin-top: 1.5rem;
-    color: #fbbf24;
+  .total {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 1rem;
   }
   
   .hidden {
     display: none;
   }
   
-  .flex {
-    display: flex;
-    gap: 0.5rem;
+  #toggle-text button {
+    background: none;
+    color: #60a5fa;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
   }
   
