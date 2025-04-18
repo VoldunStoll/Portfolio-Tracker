@@ -1,23 +1,24 @@
-// Setup Supabase
+
+// ===== Supabase Config =====
 const SUPABASE_URL = 'https://rtplxllphixpqhkvsuop.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cGx4bGxwaGl4cHFoa3ZzdW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjQwMTUsImV4cCI6MjA2MDQwMDAxNX0.sLiS0__pFaxtKW1rE2H_6f9stti4CEVtdYQgUpJCN84'; 
+
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Elements
+// ===== DOM Elements =====
+const authSection = document.getElementById('auth-section');
+const portfolioSection = document.getElementById('portfolio-section');
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('login-email');
 const passwordInput = document.getElementById('login-password');
-const authSection = document.getElementById('auth-section');
-const portfolioSection = document.getElementById('portfolio-section');
-const form = document.getElementById('portfolio-form');
+const portfolioForm = document.getElementById('portfolio-form');
 const symbolInput = document.getElementById('coin-symbol');
 const amountInput = document.getElementById('coin-amount');
-const list = document.getElementById('portfolio-list');
+const portfolioList = document.getElementById('portfolio-list');
 const totalValueDisplay = document.getElementById('total-value');
 
-// State
-let portfolio = [];
 let currentUser = null;
+let portfolio = [];
 let coinListCache = [];
 
 const nicknameMap = {
@@ -27,12 +28,13 @@ const nicknameMap = {
   'shiba-inu': 'SHIB', pepe: 'PEPE'
 };
 
-// Auth
+// ===== Auth Functions =====
 loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = emailInput.value.trim();
   const password = passwordInput.value.trim();
-  if (!email || !password) return alert('Email and password required.');
+
+  if (!email || !password) return alert('Both fields required.');
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return alert('Login failed: ' + error.message);
@@ -42,25 +44,14 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 async function signInWithGitHub() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: window.location.origin + '/Portfolio-Tracker/'
+      redirectTo: window.location.href
     }
   });
-  if (error) {
-    console.error(error);
-    alert('GitHub login failed: ' + error.message);
-  }
+  if (error) alert('GitHub login failed: ' + error.message);
 }
-
-// Check session on load
-supabase.auth.getSession().then(({ data }) => {
-  if (data.session && data.session.user) {
-    currentUser = data.session.user;
-    onLogin();
-  }
-});
 
 async function logout() {
   await supabase.auth.signOut();
@@ -70,26 +61,35 @@ async function logout() {
   portfolioSection.classList.add('hidden');
 }
 
-// Portfolio Functions
+// Check session on load
+supabase.auth.getUser().then(({ data: { user } }) => {
+  if (user) {
+    currentUser = user;
+    onLogin();
+  }
+});
+
+// ===== On Login =====
 async function onLogin() {
   authSection.classList.add('hidden');
   portfolioSection.classList.remove('hidden');
   await loadPortfolio();
 }
 
-form.addEventListener('submit', async (e) => {
+// ===== Portfolio Logic =====
+portfolioForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!currentUser) return alert('Please login first.');
+  if (!currentUser) return alert('Please login.');
 
   const rawSymbol = symbolInput.value.trim();
   const amount = parseFloat(amountInput.value);
   if (!rawSymbol || isNaN(amount) || amount <= 0) return;
 
   const symbol = await resolveSymbol(rawSymbol.toUpperCase());
-  if (!symbol) return alert(`Coin not found: '${rawSymbol}'`);
+  if (!symbol) return alert(`Invalid coin: ${rawSymbol}`);
 
   await addOrUpdateCoin(symbol, amount);
-  form.reset();
+  portfolioForm.reset();
 });
 
 async function resolveSymbol(input) {
@@ -115,10 +115,11 @@ async function addOrUpdateCoin(symbol, amount) {
   try {
     const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${symbol}&vs_currencies=usd`);
     const data = await res.json();
-    if (!data[symbol]) return alert(`Coin not found: '${symbol}'`);
+    if (!data[symbol]) return alert(`Price not found for: '${symbol}'`);
 
     const price = data[symbol].usd;
     const existing = portfolio.find(c => c.symbol === symbol);
+
     if (existing) {
       existing.amount = amount;
       existing.price = price;
@@ -131,12 +132,12 @@ async function addOrUpdateCoin(symbol, amount) {
     renderPortfolio();
   } catch (err) {
     console.error('Add coin error:', err);
-    alert('Error fetching coin data.');
+    alert('Error fetching price.');
   }
 }
 
 function renderPortfolio() {
-  list.innerHTML = '';
+  portfolioList.innerHTML = '';
   let total = 0;
 
   portfolio.forEach(({ symbol, amount, price, value }) => {
@@ -144,18 +145,18 @@ function renderPortfolio() {
     const displaySymbol = nicknameMap[symbol] || symbol.toUpperCase();
 
     const item = document.createElement('div');
-    item.className = 'p-4 bg-gray-700 rounded shadow flex justify-between items-center';
+    item.className = 'portfolio-item';
     item.innerHTML = `
       <div>
-        <div class="font-bold uppercase">${displaySymbol}</div>
+        <div class="coin-name">${displaySymbol}</div>
         <div>${amount} @ $${price.toFixed(2)} = $${value.toFixed(2)}</div>
       </div>
-      <div class="flex space-x-2">
-        <button onclick="editCoin('${symbol}')" class="px-2 py-1 bg-yellow-600 rounded">Edit</button>
-        <button onclick="removeCoin('${symbol}')" class="px-2 py-1 bg-red-600 rounded">Remove</button>
+      <div>
+        <button onclick="editCoin('${symbol}')">Edit</button>
+        <button onclick="removeCoin('${symbol}')">Remove</button>
       </div>
     `;
-    list.appendChild(item);
+    portfolioList.appendChild(item);
   });
 
   totalValueDisplay.textContent = `$${total.toFixed(2)}`;
@@ -214,7 +215,7 @@ async function refreshPrices() {
         coin.value = coin.amount * coin.price;
       }
     } catch (err) {
-      console.error(`Error refreshing ${coin.symbol}`, err);
+      console.error(`Error updating ${coin.symbol}`, err);
     }
   }
   renderPortfolio();
