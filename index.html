@@ -12,14 +12,21 @@
     <!-- Login Page -->
     <section id="login-page">
       <h1>🪙 Crypto Portfolio Tracker</h1>
-      <form id="login-form">
-        <input type="email" id="login-email" placeholder="Email" required />
-        <input type="password" id="login-password" placeholder="Password" required />
-        <button type="submit">Login with Email</button>
+    
+      <form id="auth-form">
+        <input type="email" id="auth-email" placeholder="Email" required />
+        <input type="password" id="auth-password" placeholder="Password" required />
+        <button type="submit" id="auth-submit">Login with Email</button>
       </form>
+    
+      <p id="toggle-text">
+        Don't have an account? <button id="toggle-mode" type="button">Register here</button>
+      </p>
+    
       <p>or</p>
       <button id="github-login">Login with GitHub</button>
     </section>
+    
 
     <!-- Portfolio Page (hidden by default) -->
     <section id="portfolio-page" class="hidden">
