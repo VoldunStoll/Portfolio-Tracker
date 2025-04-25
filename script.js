@@ -56,6 +56,9 @@ authForm.addEventListener("submit", async (e) => {
 githubLoginBtn.addEventListener("click", async () => {
   await supabase.auth.signInWithOAuth({
     provider: "github",
+    options: {
+      redirectTo: "https://rtplxllphixpqhkvsuop.supabase.co/auth/v1/callback"
+    }
   });
 });
 
