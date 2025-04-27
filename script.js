@@ -29,6 +29,7 @@ let portfolio = [];
 // Ensure modal is hidden on page load
 document.addEventListener('DOMContentLoaded', () => {
   authModal.classList.add('hidden');
+  console.log('Page loaded, modal should be hidden:', authModal.classList.contains('hidden')); // Debug log
 });
 
 // Check if user is logged in on page load
@@ -38,6 +39,7 @@ async function checkSession() {
     userSession = session;
     landingPage.classList.add('hidden');
     portfolioPage.classList.remove('hidden');
+    authModal.classList.add('hidden'); // Ensure modal is hidden if logged in
     loadPortfolio();
   } else {
     landingPage.classList.remove('hidden');
@@ -48,25 +50,30 @@ async function checkSession() {
 checkSession();
 
 // Open Modal for Login
-loginBtn.addEventListener('click', () => {
+loginBtn.addEventListener('click', (e) => {
+  e.preventDefault(); // Prevent any default behavior
   authMode = 'login';
   modalTitle.textContent = 'Login';
   authSubmit.textContent = 'Login with Email';
   authModal.classList.remove('hidden');
+  console.log('Login button clicked, modal should be visible:', !authModal.classList.contains('hidden')); // Debug log
 });
 
 // Open Modal for Register
-registerBtn.addEventListener('click', () => {
+registerBtn.addEventListener('click', (e) => {
+  e.preventDefault(); // Prevent any default behavior
   authMode = 'register';
   modalTitle.textContent = 'Register';
   authSubmit.textContent = 'Register with Email';
   authModal.classList.remove('hidden');
+  console.log('Register button clicked, modal should be visible:', !authModal.classList.contains('hidden')); // Debug log
 });
 
 // Close Modal
 modalClose.addEventListener('click', () => {
   authModal.classList.add('hidden');
   authForm.reset();
+  console.log('Modal closed:', authModal.classList.contains('hidden')); // Debug log
 });
 
 // Handle Login/Register Form Submission
@@ -94,7 +101,8 @@ authForm.addEventListener('submit', async (e) => {
 });
 
 // GitHub Login
-githubLoginBtn.addEventListener('click', async () => {
+githubLoginBtn.addEventListener('click', async (e) => {
+  e.preventDefault(); // Prevent any default behavior
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
