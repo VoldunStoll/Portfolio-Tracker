@@ -1,4 +1,4 @@
-// Supabase Config js
+// Supabase Config
 const SUPABASE_URL = 'https://rtplxllphixpqhkvsuop.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cGx4bGxwaGl4cHFoa3ZzdW9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MjQwMTUsImV4cCI6MjA2MDQwMDAxNX0.sLiS0__pFaxtKW1rE2H_6f9stti4CEVtdYQgUpJCN84'; 
 
@@ -26,6 +26,11 @@ let authMode = 'login'; // or "register"
 let userSession = null;
 let portfolio = [];
 
+// Ensure modal is hidden on page load
+document.addEventListener('DOMContentLoaded', () => {
+  authModal.classList.add('hidden');
+});
+
 // Check if user is logged in on page load
 async function checkSession() {
   const { data: { session } } = await supabase.auth.getSession();
@@ -34,6 +39,10 @@ async function checkSession() {
     landingPage.classList.add('hidden');
     portfolioPage.classList.remove('hidden');
     loadPortfolio();
+  } else {
+    landingPage.classList.remove('hidden');
+    portfolioPage.classList.add('hidden');
+    authModal.classList.add('hidden'); // Ensure modal is hidden if not logged in
   }
 }
 checkSession();
@@ -105,6 +114,10 @@ supabase.auth.onAuthStateChange((_event, session) => {
     landingPage.classList.add('hidden');
     portfolioPage.classList.remove('hidden');
     loadPortfolio();
+  } else {
+    landingPage.classList.remove('hidden');
+    portfolioPage.classList.add('hidden');
+    authModal.classList.add('hidden');
   }
 });
 
